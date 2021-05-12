@@ -1,0 +1,65 @@
+---
+title: "Vaccination"
+author: ""
+date: "5/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(stringdist)
+library(flexdashboard)
+library(googlesheets4)
+library(shiny)
+library(sf)
+library(leaflet)
+library(tidyverse)
+library(plotly)
+library(lubridate)
+library(scales)
+library(RColorBrewer)
+library(patchwork)
+library(jsonlite)
+
+
+```
+
+
+```{r baseline}
+baseline<-read.csv("Simdata/baseline.csv")
+baseline%>%
+  group_by(vo,acceptV,totalvac,Simul,effV,startV)%>%
+  summarise(deaths=sum(Number))%>%
+  mutate(nvax=totalvac/TOTALPOP)%>%
+  pivot_wider(names_from=acceptV,values_from=deaths)%>%
+  mutate(novax=`0`)%>%
+  pivot_longer(cols=-c(1:6,novax),names_to="acceptance",values_to="deaths")%>%
+  ungroup()%>%
+  mutate(percent_red=1-(deaths/novax))->basedata
+
+
+basedata$percent_red<-ifelse(basedata$percent_red<0,0,basedata$percent_red)
+basedata$acceptance<-as.numeric(basedata$acceptance)
+basedata$Simul<-as.factor(basedata$Simul)
+basedata$vo<-as.factor(basedata$vo)
+levels(basedata$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
+
+```
+
+
+```{r baseline plot}
+
+basedata%>%filter(acceptance==0.7&nvax==0.2)%>%
+  ggplot()+
+  geom_violin(aes(x=vo,y=percent_red,group=vo,fill=vo),alpha=0.7)+
+  theme_classic(base_size = 14)+
+  scale_y_continuous(name="Reduction in mortality",label = percent)+
+  scale_x_discrete(name="Prioritization strategy",breaks=NULL)+
+  scale_fill_brewer(palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"))+
+  labs(title="Reduction in Mortality based on allocation strategy", subtitle="Baseline conditions")
+
+
+
+```
+
