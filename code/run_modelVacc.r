@@ -30,9 +30,9 @@ VACDATA <- read.csv("data/vacc_allocation.csv")
 REG <- unique(POPDATA$key)
 TOTALPOP <- sum(POPDATA$sum_pop)
 
-TOTALVAC <- c(TOTALPOP*0.2) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
+TOTALVAC <- c(TOTALPOP*seq(0.1,1,0.1)) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
 STARTV <- c(10) # when to start vaccinating
-VPERDAY <- c(0.5*20) # proportion of staff * how many they can do in a day
+VPERDAY <- c(seq(0.1,1,0.1)*20) # proportion of staff * how many they can do in a day
 VACCOPT <- 1:5 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
 VA <- c(0,0.7) # acceptance #baseline 0.70 (Transparency international)
 VE <- c(0.9) # vaccine efficiency #baseline scenario: 1
@@ -110,5 +110,5 @@ for(tVac in TOTALVAC){ # total number of vaccines
 	}
 }
 
-outname <- paste("Simdata/simulation2.csv")
+outname <- paste("Simdata/visual.csv")
 write.csv(summaryD, outname)
