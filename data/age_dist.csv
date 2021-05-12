@@ -1,0 +1,155 @@
+,Region,age_cat,sum_pop,key
+1,Alaotra-Mangoro,"[0,10)",339964,AL
+2,Alaotra-Mangoro,"[10,20)",316176,AL
+3,Alaotra-Mangoro,"[20,30)",207963,AL
+4,Alaotra-Mangoro,"[30,40)",146680,AL
+5,Alaotra-Mangoro,"[40,50)",113387,AL
+6,Alaotra-Mangoro,"[50,60)",68857,AL
+7,Alaotra-Mangoro,"[60,Inf)",56904,AL
+8,Amoron'i Mania,"[0,10)",246242,AM
+9,Amoron'i Mania,"[10,20)",223225,AM
+10,Amoron'i Mania,"[20,30)",121715,AM
+11,Amoron'i Mania,"[30,40)",88161,AM
+12,Amoron'i Mania,"[40,50)",67802,AM
+13,Amoron'i Mania,"[50,60)",45706,AM
+14,Amoron'i Mania,"[60,Inf)",44265,AM
+15,Analamanga,"[0,10)",808703,AN
+16,Analamanga,"[10,20)",840197,AN
+17,Analamanga,"[20,30)",686142,AN
+18,Analamanga,"[30,40)",475270,AN
+19,Analamanga,"[40,50)",371455,AN
+20,Analamanga,"[50,60)",239293,AN
+21,Analamanga,"[60,Inf)",202865,AN
+22,Analanjirofo,"[0,10)",278067,AJ
+23,Analanjirofo,"[10,20)",296622,AJ
+24,Analanjirofo,"[20,30)",209213,AJ
+25,Analanjirofo,"[30,40)",145120,AJ
+26,Analanjirofo,"[40,50)",100708,AJ
+27,Analanjirofo,"[50,60)",65676,AJ
+28,Analanjirofo,"[60,Inf)",54683,AJ
+29,Androy,"[0,10)",338339,AY
+30,Androy,"[10,20)",226967,AY
+31,Androy,"[20,30)",134268,AY
+32,Androy,"[30,40)",75982,AY
+33,Androy,"[40,50)",52599,AY
+34,Androy,"[50,60)",33836,AY
+35,Androy,"[60,Inf)",38244,AY
+36,Anosy,"[0,10)",257196,AS
+37,Anosy,"[10,20)",208112,AS
+38,Anosy,"[20,30)",134999,AS
+39,Anosy,"[30,40)",85049,AS
+40,Anosy,"[40,50)",57577,AS
+41,Anosy,"[50,60)",34720,AS
+42,Anosy,"[60,Inf)",31398,AS
+43,Atsimo-Andrefana,"[0,10)",588198,AD
+44,Atsimo-Andrefana,"[10,20)",464070,AD
+45,Atsimo-Andrefana,"[20,30)",288600,AD
+46,Atsimo-Andrefana,"[30,40)",191574,AD
+47,Atsimo-Andrefana,"[40,50)",126475,AD
+48,Atsimo-Andrefana,"[50,60)",72653,AD
+49,Atsimo-Andrefana,"[60,Inf)",66324,AD
+50,Atsimo-Atsinanana,"[0,10)",351640,AA
+51,Atsimo-Atsinanana,"[10,20)",270151,AA
+52,Atsimo-Atsinanana,"[20,30)",161626,AA
+53,Atsimo-Atsinanana,"[30,40)",101806,AA
+54,Atsimo-Atsinanana,"[40,50)",69348,AA
+55,Atsimo-Atsinanana,"[50,60)",41690,AA
+56,Atsimo-Atsinanana,"[60,Inf)",34143,AA
+57,Atsinanana,"[0,10)",400603,AT
+58,Atsinanana,"[10,20)",363927,AT
+59,Atsinanana,"[20,30)",267599,AT
+60,Atsinanana,"[30,40)",181666,AT
+61,Atsinanana,"[40,50)",122228,AT
+62,Atsinanana,"[50,60)",79911,AT
+63,Atsinanana,"[60,Inf)",62538,AT
+64,Betsiboka,"[0,10)",116149,BE
+65,Betsiboka,"[10,20)",101979,BE
+66,Betsiboka,"[20,30)",69701,BE
+67,Betsiboka,"[30,40)",45335,BE
+68,Betsiboka,"[40,50)",30097,BE
+69,Betsiboka,"[50,60)",16771,BE
+70,Betsiboka,"[60,Inf)",13246,BE
+71,Boeny,"[0,10)",251907,BO
+72,Boeny,"[10,20)",230728,BO
+73,Boeny,"[20,30)",168033,BO
+74,Boeny,"[30,40)",111715,BO
+75,Boeny,"[40,50)",78737,BO
+76,Boeny,"[50,60)",47361,BO
+77,Boeny,"[60,Inf)",40831,BO
+78,Bongolava,"[0,10)",200156,BG
+79,Bongolava,"[10,20)",176009,BG
+80,Bongolava,"[20,30)",114607,BG
+81,Bongolava,"[30,40)",73531,BG
+82,Bongolava,"[40,50)",53275,BG
+83,Bongolava,"[50,60)",30879,BG
+84,Bongolava,"[60,Inf)",22536,BG
+85,Diana,"[0,10)",233530,DI
+86,Diana,"[10,20)",209650,DI
+87,Diana,"[20,30)",166163,DI
+88,Diana,"[30,40)",113148,DI
+89,Diana,"[40,50)",77615,DI
+90,Diana,"[50,60)",47378,DI
+91,Diana,"[60,Inf)",42478,DI
+92,Ihorombe,"[0,10)",132317,IH
+93,Ihorombe,"[10,20)",107098,IH
+94,Ihorombe,"[20,30)",68472,IH
+95,Ihorombe,"[30,40)",48116,IH
+96,Ihorombe,"[40,50)",31153,IH
+97,Ihorombe,"[50,60)",16924,IH
+98,Ihorombe,"[60,Inf)",13232,IH
+99,Itasy,"[0,10)",243226,IT
+100,Itasy,"[10,20)",233052,IT
+101,Itasy,"[20,30)",147672,IT
+102,Itasy,"[30,40)",101669,IT
+103,Itasy,"[40,50)",78944,IT
+104,Itasy,"[50,60)",50156,IT
+105,Itasy,"[60,Inf)",43830,IT
+106,Matsiatra Ambony,"[0,10)",389200,MA
+107,Matsiatra Ambony,"[10,20)",401846,MA
+108,Matsiatra Ambony,"[20,30)",231238,MA
+109,Matsiatra Ambony,"[30,40)",163969,MA
+110,Matsiatra Ambony,"[40,50)",116833,MA
+111,Matsiatra Ambony,"[50,60)",72301,MA
+112,Matsiatra Ambony,"[60,Inf)",69200,MA
+113,Melaky,"[0,10)",100124,MK
+114,Melaky,"[10,20)",79912,MK
+115,Melaky,"[20,30)",50225,MK
+116,Melaky,"[30,40)",33633,MK
+117,Melaky,"[40,50)",21364,MK
+118,Melaky,"[50,60)",12447,MK
+119,Melaky,"[60,Inf)",11239,MK
+120,Menabe,"[0,10)",201326,ME
+121,Menabe,"[10,20)",180349,ME
+122,Menabe,"[20,30)",120891,ME
+123,Menabe,"[30,40)",82093,ME
+124,Menabe,"[40,50)",54098,ME
+125,Menabe,"[50,60)",29262,ME
+126,Menabe,"[60,Inf)",24444,ME
+127,Sava,"[0,10)",276933,SA
+128,Sava,"[10,20)",296148,SA
+129,Sava,"[20,30)",196053,SA
+130,Sava,"[30,40)",139955,SA
+131,Sava,"[40,50)",100070,SA
+132,Sava,"[50,60)",59328,SA
+133,Sava,"[60,Inf)",55285,SA
+134,Sofia,"[0,10)",433370,SO
+135,Sofia,"[10,20)",406678,SO
+136,Sofia,"[20,30)",257906,SO
+137,Sofia,"[30,40)",166267,SO
+138,Sofia,"[40,50)",112076,SO
+139,Sofia,"[50,60)",68175,SO
+140,Sofia,"[60,Inf)",63119,SO
+141,Vakinankaratra,"[0,10)",596493,VA
+142,Vakinankaratra,"[10,20)",530240,VA
+143,Vakinankaratra,"[20,30)",314603,VA
+144,Vakinankaratra,"[30,40)",234183,VA
+145,Vakinankaratra,"[40,50)",183102,VA
+146,Vakinankaratra,"[50,60)",115776,VA
+147,Vakinankaratra,"[60,Inf)",105262,VA
+148,Vatovavy-Fitovinany,"[0,10)",448382,VF
+149,Vatovavy-Fitovinany,"[10,20)",379397,VF
+150,Vatovavy-Fitovinany,"[20,30)",238680,VF
+151,Vatovavy-Fitovinany,"[30,40)",152915,VF
+152,Vatovavy-Fitovinany,"[40,50)",105588,VF
+153,Vatovavy-Fitovinany,"[50,60)",65904,VF
+154,Vatovavy-Fitovinany,"[60,Inf)",49791,VF
