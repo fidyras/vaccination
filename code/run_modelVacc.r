@@ -110,5 +110,5 @@ for(tVac in TOTALVAC){ # total number of vaccines
 	}
 }
 
-outname <- paste("Simdata/simulation2_flat.csv")
+outname <- paste("Simdata/simulation2.csv")
 write.csv(summaryD, outname)
