@@ -1,4 +1,4 @@
-setwd("/Users/fidisoar/Dropbox/Mahaliana/research projects/COVID in Madagascar/Vaccination/")
+
 source("code/ModelVacc.R")
 
 paramDATA <- read.csv("data/paramDemo.csv")
