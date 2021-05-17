@@ -59,15 +59,16 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
 
     tCurrent=0;
     #initial conditions
-    S=rep(1,n)*popSize*propAge;
-    E=rep(0,n);
-    A=pAi;
-    I=pIi;
-    R=rep(0,n);
-    U=rep(0,n);
-    D=rep(0,n);
-    M=rep(0,n);
-    NbCases=rep(0,n);
+    S=rep(1,n)*popSize*propAge; # susceptible
+    E=rep(0,n); # exposed
+    A=pAi; # infectious asymptomatic
+    I=pIi; # infectious sympotmatic
+    R=rep(0,n); # recovered from I
+    U=rep(0,n); # recovered from A
+    D=rep(0,n); # death from I
+    M=rep(0,n); # serious case from I
+    NbCases=rep(0,n); # new case per day
+    NVac = rep(0,n) # number of doses per age
     
     t=0;
     while(t<tMax){
@@ -81,6 +82,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
       M[which(M<0)]=0;
       D[which(D<0)]=0;
 
+      nVac = 0 # initialize
+      vac = rep(0,n) # 
       # Do vaccination
       if(vaccinationNumber > 0 & t >= (vaccinationBegin + lag)){
         nVac = min(vaccinationPerDay*tau, vaccinationNumber)
@@ -161,33 +164,62 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
         if(byAge==FALSE){
           # number in each status
           time=c(time,rep(tCurrent,8));
-          age=c(age,rep(1,8));
+          age=c(age,rep(0,8));
           status=c(status,c("S","E", "A","U", "I", "R", "D", "M"));
           Number=c(Number,sum(S),sum(E),sum(A),sum(U),sum(I),sum(R),sum(D),sum(M));
           Simul=c(Simul,rep(repID,8));
+
           # number of new cases
           time=c(time,tCurrent);
-          age=c(age,1);
+          age=c(age,0);
           status=c(status,"newC");
           Number=c(Number,sum(NbCases));
-          NbCases = rep_len(0, n)
           Simul=c(Simul,repID);
-        }
+          NbCases = rep_len(0, n)
+
+          # number of doses
+          time=c(time,tCurrent);
+          age=c(age,0);
+          status=c(status,"nVac");
+          Number=c(Number, nVac);
+          Simul=c(Simul,repID);
+        }else{
+          time = c(time, rep(tCurrent, 8 * n ))
+          age = c(age, rep(1:n, 8))
+          status = c(status, rep(c("S","E", "A","U", "I", "R", "D", "M"), each = n))
+          Number= c(Number, c(S, E, A, U, I, R, D, M))
+          Simul = c(Simul, rep(repID, 8 * n))
+
+          # number of new cases
+          time=c(time,rep(tCurrent, n));
+          age=c(age,1:n);
+          status=c(status,rep("newC", n));
+          Number=c(Number, NbCases); 
+          Simul=c(Simul,rep(repID, n));
+          NbCases = rep_len(0, n); # re-initialization
+
+          # number of doses
+          time=c(time,rep(tCurrent, n));
+          age=c(age,1:n);
+          status=c(status,rep("nVac", n));
+          Number=c(Number, vac); 
+          Simul=c(Simul,rep(repID, n));
+        } 
         tCurrent=tCurrent+1;
       }
       t=t+tau;
     } # end loop for one simulation
 
-    time=c(time,rep(tCurrent,nn));
-    age=c(age,1:nn);
-    status=c(status,rep("allD",nn));
+    time=c(time,rep(tCurrent,n));
+    age=c(age,1:n);
+    status=c(status,rep("allD",n));
     Number=c(Number,D);
-    Simul=c(Simul,rep(repID,nn));
-    time=c(time,rep(tCurrent,nn));
-    age=c(age,1:nn);
-    status=c(status,rep("allR",nn));
+    Simul=c(Simul,rep(repID,n));
+    time=c(time,rep(tCurrent,n));
+    age=c(age,1:n);
+    status=c(status,rep("allR",n));
     Number=c(Number,R);
-    Simul=c(Simul,rep(repID,nn));
+    Simul=c(Simul,rep(repID,n));
   # } # end loop for replicates
 
   returnDf=data.frame(time=time,

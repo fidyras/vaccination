@@ -1,4 +1,3 @@
-
 source("code/ModelVacc.R")
 
 paramDATA <- read.csv("data/paramDemo.csv")
@@ -30,9 +29,9 @@ VACDATA <- read.csv("data/vacc_allocation.csv")
 REG <- unique(POPDATA$key)
 TOTALPOP <- sum(POPDATA$sum_pop)
 
-TOTALVAC <- c(TOTALPOP*seq(0.1,1,0.1)) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
+TOTALVAC <-  ceiling(c(TOTALPOP*seq(0.1,1,0.1))) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
 STARTV <- c(10) # when to start vaccinating
-VPERDAY <- c(seq(0.1,1,0.1)*20) # proportion of staff * how many they can do in a day
+VPERDAY <- ceiling(c(seq(0.1,1,0.1)*20))# proportion of staff * how many they can do in a day
 VACCOPT <- 1:5 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
 VA <- c(0,0.7) # acceptance #baseline 0.70 (Transparency international)
 VE <- c(0.9) # vaccine efficiency #baseline scenario: 1
@@ -79,29 +78,27 @@ for(tVac in TOTALVAC){ # total number of vaccines
 							
 							# run the model
 							for(repID in REPID){
-							  output <- ModelVacc(paramVac, paramStruc, paramDemo, paramSim, repID)
-							  
-							  # add the parameter to the output and append the region
-							  summaryD0 <- tail(output,14)[1:nn, 2:5]
-							  # print(summaryD0)
-							  regID <- rep(REG[r],nn)
-							  regNV <- as.numeric(rep(nVac,nn))
-							  startV <- rep(startVac,nn)
-							  vPerD <- as.numeric(rep(vacPerDay,nn))
-							  allocV <- rep(vo,nn)
-							  acceptV <- pvA
-							  totalvac<- tVac
-							  # cat(pvA, "\n")
-							  effV <- pvEff
-							  
-							  summaryD0 <- cbind(summaryD0, regID, regNV, startV, vPerD, vpd, vo, acceptV, effV,totalvac) 
-							  summaryD <- rbind(summaryD, summaryD0)
-							 }
-							
-							
+								output <- ModelVacc(paramVac, paramStruc, paramDemo, paramSim, repID)
 
-							# outname <- paste("data/sim_data/q_sim_vacc_reg_",REG[r],".csv", sep = "")
-							# write.csv(output, outname)
+								# add the parameter to the output and append the region
+								summaryD0 <- tail(output,14)[1:nn, 2:5]
+								# print(summaryD0)
+								regID <- rep(REG[r],nn)
+								regNV <- as.numeric(rep(nVac,nn))
+								startV <- rep(startVac,nn)
+								vPerD <- as.numeric(rep(vacPerDay,nn))
+								allocV <- rep(vo,nn)
+								acceptV <- pvA
+								totalvac<- tVac
+								# cat(pvA, "\n")
+								effV <- pvEff
+
+								summaryD0 <- cbind(summaryD0, regID, regNV, startV, vPerD, vpd, vo, acceptV, effV,totalvac) 
+								summaryD <- rbind(summaryD, summaryD0)
+
+								outname <- paste("Simdata/sim_vacc_reg",REG[r],"vAlloc", vo, "tv", tVac, "dv", vpd, "sv", startVac,"ev", ve, "av", va , "rep", repID, ".csv", sep = "_")
+								write.csv(output, outname)
+							}
 						}
 					}	
 				}
