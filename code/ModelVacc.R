@@ -161,7 +161,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
       
       #Saving data
       if(t>tCurrent){
-        if(byAge==FALSE){
+        if(byAge==TRUE){
           # number in each status
           time=c(time,rep(tCurrent,8));
           age=c(age,rep(0,8));

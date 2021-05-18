@@ -6,7 +6,6 @@ library(patchwork)
 #### reduction of deaths as a function of strategy
 baseline<-read.csv("Simdata/baseline.csv")
 
-
 baseline%>%
   group_by(vo,acceptV,totalvac,Simul,effV,startV)%>%
   summarise(deaths=sum(Number))%>%
@@ -78,6 +77,7 @@ Simulation1%>%filter(acceptance==0.7)%>%
 ####### Simulation 2
 #####vary vaccine acceptance assuming enough doses to cover 20% of the population and 50% of HCW performing 20 vaccines/day
 Simdata2<-read.csv("Simdata/simulation2.csv")
+Simdata2<-summaryD
 Simdata2%>%
   group_by(vo,acceptV,totalvac,Simul)%>%
   summarise(deaths=sum(Number))%>%
@@ -92,9 +92,12 @@ Simulation2$acceptance<-as.numeric(Simulation2$acceptance)
 Simulation2$vo<-as.factor(Simulation2$vo)
 levels(Simulation2$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
 Simulation2$percent_red<-ifelse(Simulation2$percent_red<0,0,Simulation2$percent_red)
-Simulation2%>%filter(nvax==0.2)%>%group_by(acceptance,vo)%>%summarise(median=median(percent_red))->median_sim2
+Simulation2%>%
+  #filter(nvax==0.2)%>%
+  group_by(acceptance,vo)%>%summarise(median=median(percent_red))->median_sim2
 
-Simulation2%>% filter(nvax==0.2)%>% #filter baseline number of vaccines available
+Simulation2%>% 
+  #filter(nvax==0.2)%>% #filter baseline number of vaccines available
   ggplot()+
   geom_line(aes(x=acceptance,y=percent_red,group=interaction(Simul,vo),color=vo),
             size=0.1,se=F,alpha=0.5)+
@@ -106,7 +109,7 @@ Simulation2%>% filter(nvax==0.2)%>% #filter baseline number of vaccines availabl
   scale_y_continuous(name="Reduction in mortality",label = percent)+
   scale_color_brewer(guide="none",palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"))+
   labs(
-       subtitle="Variable acceptance rate ")->sim2_fig
+       subtitle="Variable acceptance rate ")
 
 
 
@@ -241,3 +244,75 @@ visdata%>%filter(acceptance==0.7)%>%
   scale_y_continuous(name="Total Supply (% population)",label = percent)+
   scale_fill_viridis_c(option="A",label=percent, name="Reduction in Mortality")+
   facet_wrap(~vo)
+
+
+
+###### SEIR timeseries
+
+
+
+ts<-read.csv("Simdata/SEIR_accept_0.7_start_10_.csv")  
+
+ts$allocV_ts<-as.factor(ts$allocV_ts)
+levels(ts$allocV_ts) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
+ts$age<-as.factor(ts$age)
+levels(ts$age)<- c("0-9","10-19","20-29","30-39","40-49","50-59","60+")
+options(scipen=999)
+library(scales)
+
+ts%>%
+  group_by(time,status,allocV_ts,regID_ts,acceptV)%>%
+  summarise(Number=sum(Number))%>%
+  pivot_wider(names_from = status, values_from=Number)%>%
+  mutate("R"=U+R,"I"=A+I)%>%
+  select(time,S,E,A,I,R,D,nVac,allocV_ts,regID_ts,acceptV)%>%
+  pivot_longer(cols=-c(time,allocV_ts,regID_ts,acceptV),names_to="status", values_to="Number")%>%
+  filter(status=="R"|status=="S"|status=="I"|status=="D"|status=="E"|status=="nVac")%>%
+  filter(allocV_ts=="Population")->SEIR_ts
+
+SEIR_ts$acceptV<-as.factor(SEIR_ts$acceptV)
+SEIR_ts%>%filter(status=="nVac")%>%
+  ggplot(aes(x=time,y=Number,group=interaction(allocV_ts,status,regID_ts,acceptV),color=regID_ts,lty=acceptV))+
+  geom_line(size=0.3)+
+  scale_y_continuous(labels= comma)+
+  #scale_color_brewer(palette="Dark2",name="Status")+
+  theme_bw()+
+  geom_vline(aes(xintercept=10),lty=2, color= "grey30")+
+  labs(title = "Vaccination per day",subtitle = "Analamanga")
+
+
+
+ts$acceptV<-as.factor(ts$acceptV)
+ts%>%group_by(time,age,status,allocV_ts,regID_ts,acceptV)%>%filter(regID_ts=="AN")%>%
+  summarise(Number=sum(Number))%>%
+  pivot_wider(names_from = status, values_from=Number)%>%
+  mutate("R"=U+R)%>%
+  select(time,age,S,E,A,I,R,D,nVac,allocV_ts,regID_ts,acceptV)%>%
+  pivot_longer(cols=-c(time,age,allocV_ts,regID_ts,acceptV),names_to="status", values_to="Number")%>%
+  filter(status=="nVac")%>%filter(allocV_ts=="Population")%>%
+  ggplot(aes(x=time,y=Number,group=interaction(allocV_ts,status,age,regID_ts,acceptV),color=age,lty=acceptV))+
+  geom_line(size=0.75,alpha=0.5)+
+  scale_linetype_discrete(name="Allocation strategy")+
+  scale_y_continuous(labels= comma)+
+  scale_color_brewer(palette="Dark2",name="age category")+
+  theme_bw()+
+  labs(title = "vaccination accross age categories through time",subtitle = "baseline conditions")
+
+ts%>%group_by(age,status,allocV_ts,regID_ts,acceptV)%>%filter(regID_ts=="AN")%>%
+  summarise(Number=sum(Number))%>%
+  pivot_wider(names_from = status, values_from=Number)%>%
+  mutate("R"=U+R)%>%
+  select(age,S,E,A,I,R,D,nVac,allocV_ts,regID_ts,acceptV)%>%
+  pivot_longer(cols=-c(age,allocV_ts,regID_ts,acceptV),names_to="status", values_to="Number")%>%
+  filter(status=="nVac"|status=="D")%>%filter(allocV_ts=="Population")%>%
+  pivot_wider(names_from = status,values_from=Number)
+
+vpd+vpd_age
+
+ts_age_novax+coord_cartesian(ylim=c(0,500))->ts_age_novax
+ts_age_vax+coord_cartesian(ylim=c(0,500))->ts_age_vax
+ts_age_novax+ts_age_vax+plot_layout(guides="collect")
+
+timeseries_D_novax+coord_cartesian(ylim=c(0,1500))->timeseries_D_novax
+timeseries_D_vax+coord_cartesian(ylim=c(0,1500))->timeseries_D_vax
+(timeseries_novax+timeseries_vax)/(timeseries_D_novax+timeseries_D_vax)+plot_layout(guides="collect")

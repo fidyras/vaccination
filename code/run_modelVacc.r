@@ -12,7 +12,7 @@ tMax <- 365 #one year
 tau <- 0.5 #timesteps
 nbSimul <- 1
 nn <- 7 # number of age class
-
+mm<-nn*tMax*10 #(10:number of compartments SEAIRUMD+nVac+newC)
 # basic parameter for simulation
 paramSim <- list(ptMax = tMax, nbSimul = nbSimul, byAge = F)
 
@@ -29,17 +29,17 @@ VACDATA <- read.csv("data/vacc_allocation.csv")
 REG <- unique(POPDATA$key)
 TOTALPOP <- sum(POPDATA$sum_pop)
 
-TOTALVAC <-  ceiling(c(TOTALPOP*seq(0.1,1,0.1))) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
+TOTALVAC <-  ceiling(c(TOTALPOP*0.2)) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
 STARTV <- c(10) # when to start vaccinating
-VPERDAY <- ceiling(c(seq(0.1,1,0.1)*20))# proportion of staff * how many they can do in a day
-VACCOPT <- 1:5 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
-VA <- c(0,0.7) # acceptance #baseline 0.70 (Transparency international)
-VE <- c(0.9) # vaccine efficiency #baseline scenario: 1
-RR <- 1:1 # 1:22
+VPERDAY <- ceiling(c(00.5*20))# proportion of staff * how many they can do in a day
+VACCOPT <- 1:1 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
+VA <- c(0.01,0.1,0.5,1) # acceptance #baseline 0.70 (Transparency international)
+VE <- c(0.9) # vaccine efficiency #baseline scenario: 0.9
+RR <- 3:3 # 1:22
 REPID <- 1:1
 
 summaryD <- c()
-
+ts<-c()
 
 # RUNNING WITH ALL COMBINATIONS
 for(tVac in TOTALVAC){ # total number of vaccines
@@ -82,6 +82,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 
 								# add the parameter to the output and append the region
 								summaryD0 <- tail(output,14)[1:nn, 2:5]
+								timeseries <- output[1:mm, 1:5]
 								# print(summaryD0)
 								regID <- rep(REG[r],nn)
 								regNV <- as.numeric(rep(nVac,nn))
@@ -92,12 +93,18 @@ for(tVac in TOTALVAC){ # total number of vaccines
 								totalvac<- tVac
 								# cat(pvA, "\n")
 								effV <- pvEff
-
+								
+								# output of the timeseries for all regions
+								regID_ts <- rep(REG[r],mm)
+								allocV_ts <- rep(vo,mm)
+								timeseries<-cbind(timeseries,regID_ts,allocV_ts,acceptV)
+								ts<-rbind(timeseries,ts)
+								
 								summaryD0 <- cbind(summaryD0, regID, regNV, startV, vPerD, vpd, vo, acceptV, effV,totalvac) 
 								summaryD <- rbind(summaryD, summaryD0)
 
-								outname <- paste("Simdata/sim_vacc_reg",REG[r],"vAlloc", vo, "tv", tVac, "dv", vpd, "sv", startVac,"ev", ve, "av", va , "rep", repID, ".csv", sep = "_")
-								write.csv(output, outname)
+								#outname <- paste("Simdata/sim_vacc_reg",REG[r],"vAlloc", vo, "tv", tVac, "dv", vpd, "sv", startVac,"ev", ve, "av", va , "rep", repID, ".csv", sep = "_")
+								#write.csv(output, outname)
 							}
 						}
 					}	
@@ -106,6 +113,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 		}
 	}
 }
-
+outname_ts <- paste("Simdata/SEIR","accept",va, "start", startVac, ".csv", sep = "_")
+write.csv(ts,outname_ts)
 outname <- paste("Simdata/visual.csv")
 write.csv(summaryD, outname)
