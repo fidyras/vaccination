@@ -42,7 +42,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
 
   
   tau=0.5;
-  lag = 6/tau; # vaccinated started to be immune after 6 days
+  lag = 6; # vaccinated started to be immune after 6 days
   
   time=c();
   age=c();
@@ -70,6 +70,9 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
     NbCases=rep(0,n); # new case per day
     NVac = rep(0,n) # number of doses per age
     
+    onVac = 0 # initialize
+    ovac = rep(0,n) #
+    
     t=0;
     while(t<tMax){
       #Main body of equations
@@ -82,10 +85,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
       M[which(M<0)]=0;
       D[which(D<0)]=0;
 
-      nVac = 0 # initialize
-      vac = rep(0,n) # 
       # Do vaccination
-      if(vaccinationNumber > 0 & t >= (vaccinationBegin + lag)){
+      if(vaccinationNumber > 0 & t > (vaccinationBegin + lag)){
         nVac = min(vaccinationPerDay*tau, vaccinationNumber)
         vac = distributeVac(nVac, S, vaccinationAccept)
         # cat(vac, "\n")
@@ -95,6 +96,9 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
           R[i] = floor(R[i] + temp)
         }
         vaccinationNumber = vaccinationNumber - sum(vac)
+        
+        onVac <- onVac + nVac # updating as export is based on days not tau step
+        ovac <- ovac + vac
       }
 
       #Calculating force of direct transmission, based on age contact network
@@ -161,7 +165,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
       
       #Saving data
       if(t>tCurrent){
-        if(byAge==TRUE){
+        if(byAge==FALSE){
           # number in each status
           time=c(time,rep(tCurrent,8));
           age=c(age,rep(0,8));
@@ -181,8 +185,10 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
           time=c(time,tCurrent);
           age=c(age,0);
           status=c(status,"nVac");
-          Number=c(Number, nVac);
+          Number=c(Number, onVac);
           Simul=c(Simul,repID);
+          onVac = 0;
+          ovac = rep_len(0,n);
         }else{
           time = c(time, rep(tCurrent, 8 * n ))
           age = c(age, rep(1:n, 8))
@@ -202,8 +208,10 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
           time=c(time,rep(tCurrent, n));
           age=c(age,1:n);
           status=c(status,rep("nVac", n));
-          Number=c(Number, vac); 
+          Number=c(Number, ovac); 
           Simul=c(Simul,rep(repID, n));
+          onVac = 0;
+          ovac = rep_len(0,n);
         } 
         tCurrent=tCurrent+1;
       }

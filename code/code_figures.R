@@ -1,6 +1,7 @@
 library(tidyverse)
 library(scales)
 library(patchwork)
+
 #####################
 ############# Baseline
 #### reduction of deaths as a function of strategy
@@ -258,6 +259,7 @@ levels(ts$allocV_ts) <- c("Population", "Elderly", "Number of cases", "Number of
 ts$age<-as.factor(ts$age)
 levels(ts$age)<- c("0-9","10-19","20-29","30-39","40-49","50-59","60+")
 options(scipen=999)
+ts$acceptV<-as.factor(ts$acceptV)
 library(scales)
 
 ts%>%
@@ -278,34 +280,38 @@ SEIR_ts%>%filter(status=="nVac")%>%
   #scale_color_brewer(palette="Dark2",name="Status")+
   theme_bw()+
   geom_vline(aes(xintercept=10),lty=2, color= "grey30")+
-  labs(title = "Vaccination per day",subtitle = "Analamanga")
+  labs(title = "Vaccination per day")
 
 
 
-ts$acceptV<-as.factor(ts$acceptV)
-ts%>%group_by(time,age,status,allocV_ts,regID_ts,acceptV)%>%filter(regID_ts=="AN")%>%
+
+ts%>%#filter(regID_ts=="AN")%>%
+  group_by(time,age,status,allocV_ts,acceptV)%>%
   summarise(Number=sum(Number))%>%
   pivot_wider(names_from = status, values_from=Number)%>%
   mutate("R"=U+R)%>%
-  select(time,age,S,E,A,I,R,D,nVac,allocV_ts,regID_ts,acceptV)%>%
-  pivot_longer(cols=-c(time,age,allocV_ts,regID_ts,acceptV),names_to="status", values_to="Number")%>%
-  filter(status=="nVac")%>%filter(allocV_ts=="Population")%>%
-  ggplot(aes(x=time,y=Number,group=interaction(allocV_ts,status,age,regID_ts,acceptV),color=age,lty=acceptV))+
+  select(time,age,S,E,A,I,R,D,nVac,allocV_ts,acceptV)%>%
+  pivot_longer(cols=-c(time,age,allocV_ts,acceptV),names_to="status", values_to="Number")%>%
+  filter(status=="nVac")%>%
+
+#filter(allocV_ts=="Population")%>
+ggplot(aes(x=time,y=Number,group=interaction(allocV_ts,status,age),color=age))+
   geom_line(size=0.75,alpha=0.5)+
   scale_linetype_discrete(name="Allocation strategy")+
   scale_y_continuous(labels= comma)+
   scale_color_brewer(palette="Dark2",name="age category")+
   theme_bw()+
-  labs(title = "vaccination accross age categories through time",subtitle = "baseline conditions")
+  labs(title = "vaccination accross age categories through time",subtitle = "baseline conditions")+
+  facet_wrap(~acceptV)
 
-ts%>%group_by(age,status,allocV_ts,regID_ts,acceptV)%>%filter(regID_ts=="AN")%>%
+ts%>%filter(Simul==10)%>%group_by(age,status,allocV_ts,acceptV)%>%#filter(regID_ts=="AN")%>%
   summarise(Number=sum(Number))%>%
   pivot_wider(names_from = status, values_from=Number)%>%
   mutate("R"=U+R)%>%
-  select(age,S,E,A,I,R,D,nVac,allocV_ts,regID_ts,acceptV)%>%
-  pivot_longer(cols=-c(age,allocV_ts,regID_ts,acceptV),names_to="status", values_to="Number")%>%
+  select(age,S,E,A,I,R,D,nVac,allocV_ts,acceptV)%>%
+  pivot_longer(cols=-c(age,allocV_ts,acceptV),names_to="status", values_to="Number")%>%
   filter(status=="nVac"|status=="D")%>%filter(allocV_ts=="Population")%>%
-  pivot_wider(names_from = status,values_from=Number)
+  pivot_wider(names_from = status,values_from=Number)->c
 
 vpd+vpd_age
 
