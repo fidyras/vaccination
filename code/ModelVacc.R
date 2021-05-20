@@ -39,7 +39,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
   vaccinationAccept = paramVac$pvaccinationAccept
   vaccinationEfficency = paramVac$pVaccinationEfficency
   # vaccinationPerAge = paramVac$pVaccinationPerAge
-
+  vaccinationQuota = round(popSize*propAge*vaccinationAccept,0)
+  # cat(vaccinationQuota)
   
   tau=0.5;
   lag = 6; # vaccinated started to be immune after 6 days
@@ -70,8 +71,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
     NbCases=rep(0,n); # new case per day
     NVac = rep(0,n) # number of doses per age
     
-    onVac = 0 # initialize
-    ovac = rep(0,n) #
+    nVacSum = 0 # initialize
+    vacSum = rep(0,n) #
     
     t=0;
     while(t<tMax){
@@ -87,8 +88,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
 
       # Do vaccination
       if(vaccinationNumber > 0 & t > (vaccinationBegin + lag)){
-        nVac = min(vaccinationPerDay*tau, vaccinationNumber)
-        vac = distributeVac(nVac, S, vaccinationAccept)
+        nVac = min(vaccinationPerDay*tau, vaccinationNumber) 
+        vac = distributeVac(nVac, vaccinationQuota, S)
         # cat(vac, "\n")
         for(i in 1:n){
           temp = rbinom(1, vac[i], vaccinationEfficency[i])
@@ -96,9 +97,10 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
           R[i] = floor(R[i] + temp)
         }
         vaccinationNumber = vaccinationNumber - sum(vac)
+        vaccinationQuota = vaccinationQuota - vac
         
-        onVac <- onVac + nVac # updating as export is based on days not tau step
-        ovac <- ovac + vac
+        nVacSum <- nVacSum + nVac # updating as export is based on days not tau step
+        vacSum <- vacSum + vac
       }
 
       #Calculating force of direct transmission, based on age contact network
@@ -185,10 +187,10 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
           time=c(time,tCurrent);
           age=c(age,0);
           status=c(status,"nVac");
-          Number=c(Number, onVac);
+          Number=c(Number, nVacSum);
           Simul=c(Simul,repID);
-          onVac = 0;
-          ovac = rep_len(0,n);
+          nVacSum = 0;
+          vacSum = rep_len(0,n);
         }else{
           time = c(time, rep(tCurrent, 8 * n ))
           age = c(age, rep(1:n, 8))
@@ -208,10 +210,10 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
           time=c(time,rep(tCurrent, n));
           age=c(age,1:n);
           status=c(status,rep("nVac", n));
-          Number=c(Number, ovac); 
+          Number=c(Number, vacSum); 
           Simul=c(Simul,rep(repID, n));
-          onVac = 0;
-          ovac = rep_len(0,n);
+          nVacSum = 0;
+          vacSum = rep_len(0,n);
         } 
         tCurrent=tCurrent+1;
       }
@@ -239,21 +241,32 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
 }
 
 # compute the Number people vaccinated in each age class
-distributeVac <- function(nVac, S, pAccept){
+distributeVac <- function(nVac, vaccinationQuota, S){
   ll <- length(S)
   result <- rep(0,ll)
   nV <- nVac
   for(i in ll:1){
     if(nV > 0){
-      acceptS <- floor(pAccept[i] * S[i])
-      if(nV <= acceptS){ # if not enough for the age class
+      acceptV <- vaccinationQuota[i]  
+      if(nV <= acceptV){ # if not enough for the age class
         result[i] <- nV
         nV <- 0
       } else{ # if there are more vaccines available for the class
-        result[i] <- acceptS
-        nV <- nV - acceptS
+        result[i] <- acceptV
+        nV <- nV - acceptV
       }
     }
   }
+  # if there not enough susceptible wrt to quota (e.g., if vaccince starts to late)
+  for(i in ll:2){
+    if(result[i] > S[i]){
+      left <- result[i] - S[i]
+      result[i] <- S[i]
+      result[i-1] = result[i-1] + left
+    }
+  }
+  if(result[1] > S[1]) result[1] <- S[1] #  too many vaccine for all S
+
   return(result)
 }
+
