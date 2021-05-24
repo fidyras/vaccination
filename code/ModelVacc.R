@@ -72,7 +72,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
     NVac = rep(0,n) # number of doses per age
     
     nVacSum = 0 # initialize
-    vacSum = rep(0,n) #
+    vacSum = rep(0,n) # vaccine per age
+    wasted = 0 # number of vaccines wasted because non-susceptible
     
     t=0;
     while(t<tMax){
@@ -86,13 +87,18 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
       M[which(M<0)]=0;
       D[which(D<0)]=0;
 
+      TOT = (S + E + A + R + U) # total number of individuals "vaccinable"
+      pS = S/TOT # proportion of susceptible
+
       # Do vaccination
       if(vaccinationNumber > 0 & t > (vaccinationBegin + lag)){
         nVac = min(vaccinationPerDay*tau, vaccinationNumber) 
-        vac = distributeVac(nVac, vaccinationQuota, S)
+        vac = distributeVac(nVac, vaccinationQuota, TOT)
         # cat(vac, "\n")
         for(i in 1:n){
-          temp = rbinom(1, vac[i], vaccinationEfficency[i])
+          temp = round(pS[i]*vac[i]) # actual vaccince used 
+          wasted = wasted + vac[i] - temp # cumulative number of wasted vaccines
+          temp = rbinom(1, temp, vaccinationEfficency[i])
           S[i] = floor(S[i] - temp)
           R[i] = floor(R[i] + temp)
         }
@@ -220,11 +226,18 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
       t=t+tau;
     } # end loop for one simulation
 
+    time = c(time, tCurrent);
+    age = c(age,0);
+    status = c(status, "wasted");
+    Number = c(Number, wasted);
+    Simul = c(Simul, repID);
+
     time=c(time,rep(tCurrent,n));
     age=c(age,1:n);
     status=c(status,rep("allD",n));
     Number=c(Number,D);
     Simul=c(Simul,rep(repID,n));
+    
     time=c(time,rep(tCurrent,n));
     age=c(age,1:n);
     status=c(status,rep("allR",n));
@@ -257,7 +270,7 @@ distributeVac <- function(nVac, vaccinationQuota, S){
       }
     }
   }
-  # if there not enough susceptible wrt to quota (e.g., if vaccince starts to late)
+  # if there not enough susceptible wrt to quota (e.g., if vaccine starts to late)
   for(i in ll:2){
     if(result[i] > S[i]){
       left <- result[i] - S[i]
