@@ -5,9 +5,11 @@ library(patchwork)
 #####################
 ############# Baseline
 #### reduction of deaths as a function of strategy
-baseline<-read.csv("Simdata/baseline.csv")
-
-baseline%>%
+basedata<-read.csv("Simdata/baseline.csv")%>%select(-1)
+#baseline30<-read.csv("Simdata/baseline30.csv")%>%select(-1)
+#baseline<-rbind(baseline30,baseline10)
+#write.csv(baseline,"Simdata/baseline.csv")
+basedata%>%
   group_by(vo,acceptV,totalvac,Simul,effV,startV)%>%
   summarise(deaths=sum(Number))%>%
   mutate(nvax=totalvac/TOTALPOP)%>%
@@ -15,25 +17,27 @@ baseline%>%
   mutate(novax=`0`)%>%
   pivot_longer(cols=-c(1:6,novax),names_to="acceptance",values_to="deaths")%>%
   ungroup()%>%
-  mutate(percent_red=1-(deaths/novax))->basedata
+  mutate(percent_red=1-(deaths/novax))->baseline
 
 
-basedata$percent_red<-ifelse(basedata$percent_red<0,0,basedata$percent_red)
-basedata$acceptance<-as.numeric(basedata$acceptance)
-basedata$Simul<-as.factor(basedata$Simul)
-basedata$vo<-as.factor(basedata$vo)
-levels(basedata$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
-basedata%>%filter(acceptance==0.7&nvax==0.2)%>%
-  ggplot()+
-  geom_violin(aes(x=vo,y=percent_red,group=vo,fill=vo))+
+baseline$percent_red<-ifelse(baseline$percent_red<0,0,baseline$percent_red)
+baseline$acceptance<-as.numeric(baseline$acceptance)
+baseline$Simul<-as.factor(baseline$Simul)
+baseline$vo<-as.factor(baseline$vo)
+levels(baseline$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
+baseline%>%filter(acceptance==0.7)%>%
+  ggplot(aes(x=vo,y=percent_red,group=vo,fill=vo))+
+  geom_violin(trim=FALSE)+
+  geom_boxplot(width=0.1)+
+  #stat_summary(fun=median, geom="point", size=2)+
   theme_classic(base_size = 14)+
   scale_y_continuous(name="Reduction in mortality",label = percent)+
   scale_x_discrete(name="Prioritization strategy",breaks=NULL)+
-  scale_fill_brewer(palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"))+
+  scale_fill_brewer(palette= "Dark2",name="Allocation strategy",label=c("Pro-rata", "Distribution of >60", "Distribution of Cases", "Distribution of deaths", "Uniform"))+
   labs(title="Reduction in Mortality based on allocation strategy",
        subtitle="Baseline conditions")->base_fig
 
-
+baseline%>%group_by(vo,acceptance)%>%summarise(median(percent_red))
 
 
 
@@ -42,7 +46,10 @@ basedata%>%filter(acceptance==0.7&nvax==0.2)%>%
 #### reduction of deaths as a function of doses available 
 # vary total vaccine supply with acceptance rate of 70% and 50% of HCW doing 20 vaccines/day
 
-Simdata1<-read.csv("Simdata/simulation1.csv")
+Simdata1<-read.csv("Simdata/simulation1.csv")%>%select(-1)
+#Simdata1_3<-read.csv("Simdata/sim1_3.csv")%>%select(-1)
+#Simdata1<-rbind(Simdata1,Simdata1_3,summaryD)
+#write.csv(Simdata1,"Simdata/simulation1.csv")
 Simdata1$Simul<-as.factor(Simdata1$Simul)
 Simdata1%>%
   group_by(vo,acceptV,totalvac,Simul,effV,startV)%>%
@@ -64,21 +71,24 @@ Simulation1%>%filter(acceptance==0.70)%>%group_by(nvax,vo)%>%summarise(median=me
 
 Simulation1%>%filter(acceptance==0.7)%>%
   ggplot()+
-  geom_line(aes(x=nvax,y=percent_red,group=interaction(vo,Simul),color=vo),size=0.1,alpha=0.5)+
+  geom_line(aes(x=nvax,y=percent_red,group=interaction(vo,Simul),color=vo),size=0.1,alpha=0.2)+
   geom_smooth(data=median_sim1,aes(x=nvax,y=median,group=vo,color=vo),se=FALSE,size=1)+
-  theme_classic(base_size = 14)+
+  theme_classic(base_size = 10)+
   scale_x_continuous(name="Total vaccine supply (% of population)",
                      label=percent)+
   scale_y_continuous(name="Reduction in mortality",label = percent,
                      limits=c(0,1))+
   scale_color_brewer(guide="none",palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"))+
   labs(
-       subtitle="Variable supply")->sim1_fig
+       subtitle="Total supply")->sim1_fig
+
+sim1_fig
 
 ####### Simulation 2
 #####vary vaccine acceptance assuming enough doses to cover 20% of the population and 50% of HCW performing 20 vaccines/day
-Simdata2<-read.csv("Simdata/simulation2.csv")
-Simdata2<-summaryD
+Simdata2<-read.csv("Simdata/simulation2.csv")%>%select(-1)
+# Simdata2<-rbind(Simdata2,summaryD)
+Simdata2$acceptV<-as.factor(Simdata2$acceptV)
 Simdata2%>%
   group_by(vo,acceptV,totalvac,Simul)%>%
   summarise(deaths=sum(Number))%>%
@@ -90,8 +100,13 @@ Simdata2%>%
   mutate(percent_red=1-(deaths/novax))->Simulation2
 
 Simulation2$acceptance<-as.numeric(Simulation2$acceptance)
+
 Simulation2$vo<-as.factor(Simulation2$vo)
 levels(Simulation2$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
+
+#Simulation2$age<-as.factor(Simulation2$age)
+#levels(Simulation2$age)<- c("0-9","10-19","20-29","30-39","40-49","50-59","60+")
+
 Simulation2$percent_red<-ifelse(Simulation2$percent_red<0,0,Simulation2$percent_red)
 Simulation2%>%
   #filter(nvax==0.2)%>%
@@ -101,18 +116,19 @@ Simulation2%>%
   #filter(nvax==0.2)%>% #filter baseline number of vaccines available
   ggplot()+
   geom_line(aes(x=acceptance,y=percent_red,group=interaction(Simul,vo),color=vo),
-            size=0.1,se=F,alpha=0.5)+
-  geom_line(data=median_sim2,aes(x=acceptance,y=median,group=vo,color=vo),
+            size=0.1,se=F,alpha=0.2)+
+  geom_smooth(data=median_sim2,aes(x=acceptance,y=median,group=vo,color=vo),
             size=1,se=F)+
-  theme_classic(base_size = 14)+
+  theme_classic(base_size = 10)+
   scale_x_continuous(name="Vaccine acceptance (% of population)",
                      label=percent)+
-  scale_y_continuous(name="Reduction in mortality",label = percent)+
-  scale_color_brewer(guide="none",palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"))+
-  labs(
-       subtitle="Variable acceptance rate ")
+  scale_y_continuous(name="Reduction in mortality",label = percent,limits=c(0,0.5))+
+  scale_color_brewer(palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"),guide=NULL)+
+  labs(subtitle="Acceptance rate ")->sim2_fig
 
 
+
+sim2_fig
 
 ###############################################
 
@@ -121,7 +137,7 @@ Simulation2%>%
 #### reduction of deaths as a function of the rollout speed 
 #vary number of HCW doing 20 vaccines/day assuming enough vaccines for 20% of the population and 70% acceptance
 
-simData3<-read.csv("Simdata/Simulation3.csv")
+simData3<-read.csv("Simdata/sim3_10.csv")
 simData3$vo<-as.factor(simData3$vo)
 levels(simData3$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
 
@@ -138,20 +154,19 @@ simData3%>%
 Simulation3%>%filter(acceptance==0.7)%>%
   ggplot()+
   geom_smooth(aes(x=staff,y=percent_red,group=vo,color=vo),position=position_dodge(width=0.1),size=1.5,se=FALSE)+
-  theme_classic(base_size = 14)+
+  theme_classic(base_size = 10)+
   geom_line(aes(x=staff,y=percent_red,group=interaction(Simul,vo),color=vo),
             size=0.1,se=F,alpha=0.5)+
-  scale_x_continuous(name="Speed of vaccine rollout (% of healthcare workers)",
+  scale_x_continuous(name="Speed of vaccine rollout",
                      label=percent)+
-  scale_y_continuous(name="Reduction in mortality",label = percent)+
+  scale_y_continuous(name="Reduction in mortality",label = percent,limits=c(0,0.5))+
   scale_color_brewer(guide="none",palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"))+
   labs(subtitle="Rollout speed")->sim3_fig
 
 ####### Simulation 4
 #### vary vaccine efficacy
 
-Simdata4<-read.csv("Simdata/Simulation4.csv")
-Simdata4$Simul<-as.factor(Simdata4$Simul)
+Simdata4<-read.csv("Simdata/Sim4_20.csv")%>%select(-1)
 Simdata4%>%
   group_by(vo,acceptV,totalvac,Simul,effV,startV)%>%
   summarise(deaths=sum(Number))%>%
@@ -164,18 +179,18 @@ Simdata4%>%
 
 Simulation4$vo<-as.factor(Simulation4$vo)
 levels(Simulation4$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
-Simulation4%>%filter(acceptance==0.70&nvax==0.2)%>%
+Simulation4%>%#filter(acceptance==0.70&nvax==0.2)%>%
   group_by(effV,vo)%>%
   summarise(median=median(percent_red))->median_sim4
 
-
-Simulation4%>%filter(acceptance==0.70&nvax==0.2)%>%
+Simulation4$acceptance<-as.numeric(Simulation4$acceptance)
+Simulation4%>%#filter(acceptance==0.70&nvax==0.2)%>%
   ggplot()+
-  geom_line(aes(x=effV,y=percent_red,group=interaction(Simul,vo),color=vo),
+  geom_line(aes(x=effV,y=percent_red,group=interaction(Simul),color=vo),
             alpha=0.1,size=0.5)+
   geom_line(data=median_sim4,aes(x=effV,y=median,group=vo,color=vo),
             size=1,se=F)+
-  theme_classic(base_size = 14)+
+  theme_classic(base_size = 10)+
   scale_x_continuous(name="Vaccine efficacy (%)",
                      label=percent)+
   scale_y_continuous(name="Reduction in mortality",label = percent,limits = c(0,0.8))+
@@ -206,42 +221,43 @@ Simulation5%>%filter(acceptance==0.7)%>%
   ggplot()+
   geom_line(aes(x=startV,y=percent_red,group=interaction(vo,Simul),color=vo),size=0.1,alpha=0.5)+
   geom_smooth(data=median_sim5,aes(x=startV,y=median,group=vo,color=vo),se=FALSE,size=1)+
-  theme_classic(base_size = 14)+
-  scale_x_continuous(name="Start of vaccination after begining of epidemic (days)")+
+  theme_classic(base_size = 10)+
+  scale_x_continuous(name="Start of vaccination (days)")+
   scale_y_continuous(name="Reduction in mortality",label = percent,
-                     limits=c(0,1))+
+                     limits=c(0,0.5))+
   scale_color_brewer(guide="none",palette= "Dark2",name="Allocation strategy",label=c("Population", "Proportion of Older people", "Proportion of Cases", "Proportion of deaths", "Uniform"))+
-  labs(subtitle="Vaccination start day")->sim5_fig
+  labs(subtitle="Start day")->sim5_fig
 
 ######
 library(patchwork)
-(sim1_fig+sim2_fig+sim3_fig)/(sim4_fig+sim5_fig)+
-  plot_annotation(tag_levels = "A")
+(base_fig|(sim1_fig+sim2_fig)/(sim3_fig+sim5_fig))+
+  plot_annotation(tag_levels = "A")+plot_layout(guides="collect")
 
 
-###### visualize reduction as function of total supply and acceptance or total supply and speed of rollout
+###### visualize reduction as function of rollout speed and acceptance or total supply and speed of rollout
 
-visual<-read.csv("Simdata/visual.csv")
+visual<-read.csv("Simdata/vpdxaccept.csv")
+visual<-summaryD
 visual%>%
   group_by(vo,acceptV,totalvac,Simul,vpd,effV,startV)%>%
-  summarise(deaths=sum(Number))%>%
+  summarise(deaths=sum(Number),vPerD=sum(vPerD))%>%
   mutate(staff=vpd/20)%>%
   mutate(nvax=totalvac/TOTALPOP)%>%
   pivot_wider(names_from=acceptV,values_from=deaths)%>%
   mutate(novax=`0`)%>%
-  pivot_longer(cols=-c(1:8,novax),names_to="acceptance",values_to="deaths")%>%
+  pivot_longer(cols=-c(1:9,novax),names_to="acceptance",values_to="deaths")%>%
   ungroup()%>%
   mutate(percent_red=1-(deaths/novax))->visdata
 
 visdata$vo<-as.factor(visdata$vo)
 levels(visdata$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
-
-visdata%>%filter(acceptance==0.7)%>%
+str(visdata)
+visdata$acceptance<-as.numeric(visdata$acceptance)
+visdata%>%#filter(nvax==0.2)%>%
   ggplot()+
-  geom_tile(aes(x=staff,y=nvax,fill=percent_red))+
+  geom_tile(aes(x=vPerD,y=acceptance,fill=percent_red))+
   theme_classic(base_size = 14)+
-  scale_x_continuous(name="rollout speed (% of HCW)",
-                     label=percent)+
+  scale_x_continuous(name="rollout speed (number of vaccines per day)")+
   scale_y_continuous(name="Total Supply (% population)",label = percent)+
   scale_fill_viridis_c(option="A",label=percent, name="Reduction in Mortality")+
   facet_wrap(~vo)
@@ -273,7 +289,8 @@ ts%>%
   filter(allocV_ts=="Population")->SEIR_ts
 
 SEIR_ts$acceptV<-as.factor(SEIR_ts$acceptV)
-SEIR_ts%>%filter(status=="nVac")%>%
+SEIR_ts%>%
+  filter(status=="nVac")%>%
   ggplot(aes(x=time,y=Number,group=interaction(allocV_ts,status,regID_ts,acceptV),color=regID_ts,lty=acceptV))+
   geom_line(size=0.3)+
   scale_y_continuous(labels= comma)+
@@ -292,9 +309,7 @@ ts%>%#filter(regID_ts=="AN")%>%
   mutate("R"=U+R)%>%
   select(time,age,S,E,A,I,R,D,nVac,allocV_ts,acceptV)%>%
   pivot_longer(cols=-c(time,age,allocV_ts,acceptV),names_to="status", values_to="Number")%>%
-  filter(status=="nVac")%>%
-
-#filter(allocV_ts=="Population")%>
+  filter(status=="D")%>%
 ggplot(aes(x=time,y=Number,group=interaction(allocV_ts,status,age),color=age))+
   geom_line(size=0.75,alpha=0.5)+
   scale_linetype_discrete(name="Allocation strategy")+
@@ -304,7 +319,7 @@ ggplot(aes(x=time,y=Number,group=interaction(allocV_ts,status,age),color=age))+
   labs(title = "vaccination accross age categories through time",subtitle = "baseline conditions")+
   facet_wrap(~acceptV)
 
-ts%>%filter(Simul==10)%>%group_by(age,status,allocV_ts,acceptV)%>%#filter(regID_ts=="AN")%>%
+ts%>%filter(Simul==1)%>%group_by(age,status,allocV_ts,acceptV)%>%#filter(regID_ts=="AN")%>%
   summarise(Number=sum(Number))%>%
   pivot_wider(names_from = status, values_from=Number)%>%
   mutate("R"=U+R)%>%
@@ -322,3 +337,30 @@ ts_age_novax+ts_age_vax+plot_layout(guides="collect")
 timeseries_D_novax+coord_cartesian(ylim=c(0,1500))->timeseries_D_novax
 timeseries_D_vax+coord_cartesian(ylim=c(0,1500))->timeseries_D_vax
 (timeseries_novax+timeseries_vax)/(timeseries_D_novax+timeseries_D_vax)+plot_layout(guides="collect")
+
+
+## map of vaccine allocation by strategy
+library(sf)
+library(ggmap)
+mdg2<-read_sf("data/shapefile/MDG_ADM1.shp")
+POPDATA%>%group_by(Region)%>%summarise(population=sum(sum_pop))->a
+mdg2%>%
+  left_join(a,by=c("NAME"="Region"))%>%
+  right_join(VACDATA,by=c("NAME"="Region"))%>%
+  mutate("vo1"=ceiling(totalvac*freq_pop),"vo2"=ceiling(totalvac*freq_60),"vo3"=ceiling(totalvac*freqcases),"vo4"=ceiling(totalvac*freqdeaths))->mdg2
+mdg2<-rmapshaper::ms_simplify(mdg2, keep = 0.15, keep_shapes = T)
+mdg2<-st_as_sf(mdg2)
+ggplot(mdg2)+
+  geom_sf(aes(fill=freq_pop))+
+  scale_fill_viridis_c(option="B",breaks=c(seq(0.025,0.125,0.025)),label=c("2.5%","5%","7.5%","10%","12.5%"),name="Proportion of doses \n to allocate")+
+  #guides(fill=guide_colorbar(nbin=12))+
+  labs(title="Pro-rata")+
+  theme_void()->vo1
+ggplot(mdg2)+
+  geom_sf(aes(fill=freq_60))+
+  scale_fill_viridis_c(option="B",breaks=c(seq(0,0.20,0.025)),guide="none")+
+  #guides(fill=guide_colorbar(nbin=12))+
+  labs(title="Distribution of elderly")+
+  theme_void()->vo2
+
+vo1+vo2+plot_annotation(tag_levels = "A")+plot_layout(guides="collect")

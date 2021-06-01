@@ -12,7 +12,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
   popSize = popStruc$pPopSize;
   pAi = popStruc$pAi
   pIi = popStruc$pIi
-  pR = propStruc$pPropR
+  pR = popStruc$pPropR
 
   # Demographic parameters
   transmRate = paramDemo$pTransmRate
