@@ -41,6 +41,10 @@ REPID <- 1:10
 summaryD <- c()
 ts<-c()
 
+
+## set pPropR: initional the proportion of recovered from previous infection
+pPropR <- rep(0, nn) 
+
 # RUNNING WITH ALL COMBINATIONS
 for(tVac in TOTALVAC){ # total number of vaccines
 	for(startVac in STARTV){ # beginning of vaccination 
@@ -66,7 +70,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 							pAi <- round(pIi/(1 - paramDemo$pPropAsympto),0)
 
 							# parameters for the structure of the population
-							popStruc <- list(pMatrix = pMatrix, pPropAge = pPropAge, pPopSize = pPopSize, pIi = pIi, pAi = pAi)
+							popStruc <- list(pMatrix = pMatrix, pPropAge = pPropAge, pPopSize = pPopSize, pIi = pIi, pAi = pAi, pPropR = pPropR)
 
 							# construct vaccination parameter
 							pp <- VACDATA[which(VACDATA$key == REG[r]), c(2 + vo,8)] # extract allocation option and the number of medical staff

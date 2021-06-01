@@ -12,6 +12,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
   popSize = popStruc$pPopSize;
   pAi = popStruc$pAi
   pIi = popStruc$pIi
+  pR = propStruc$pPropR
 
   # Demographic parameters
   transmRate = paramDemo$pTransmRate
@@ -70,6 +71,9 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
     M=rep(0,n); # serious case from I
     NbCases=rep(0,n); # new case per day
     NVac = rep(0,n) # number of doses per age
+
+    U = round(popSize*pR) # recovered from past infection
+    S = S - U # move previously recovered from susceptible
     
     nVacSum = 0 # initialize
     vacSum = rep(0,n) # vaccine per age
