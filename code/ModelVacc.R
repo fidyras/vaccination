@@ -72,7 +72,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
     NbCases=rep(0,n); # new case per day
     NVac = rep(0,n) # number of doses per age
 
-    U = round(popSize*pR) # recovered from past infection
+    U = round(popSize*propAge*pR) # recovered from past infection
     S = S - U # move previously recovered from susceptible
     
     nVacSum = 0 # initialize
