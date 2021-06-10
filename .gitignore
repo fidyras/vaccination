@@ -4,3 +4,5 @@
 .Ruserdata
 Simdata/
 figures/
+.DS_Store
+.Rapp.history
