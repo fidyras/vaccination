@@ -1,5 +1,5 @@
 
-ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
+ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByAge, repID){
 # Simulation parameter
   tMax = paramSim$ptMax;
   nbSimul = paramSim$nbSimul; # this is obsolete. Argument not used 
@@ -78,7 +78,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
     
     nVacSum = 0 # initialize
     vacSum = rep(0,n) # vaccine per age
-    wasted = 0 # number of vaccines wasted because non-susceptible
+    allwasted = 0 # number of vaccines wasted because non-susceptible
     
     t=0;
     while(t<tMax){
@@ -97,21 +97,30 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
 
       # Do vaccination
       if(vaccinationNumber > 0 & t > (vaccinationBegin + lag)){
-        nVac = min(vaccinationPerDay*tau, vaccinationNumber) 
-        vac = distributeVac(nVac, vaccinationQuota, TOT)
+        wasted = rep(0,n)
+        nVac = min(vaccinationPerDay*tau, vaccinationNumber)
+        vac = distributeVac(nVac, vaccinationQuota, TOT, vacByAge)
         # cat(vac, "\n")
         for(i in 1:n){
-          temp = round(pS[i]*vac[i]) # actual vaccince used 
-          wasted = wasted + vac[i] - temp # cumulative number of wasted vaccines
+          temp = rbinom(1, vac[i], pS[i]) # actual vaccince used 
+          wasted[i] =  vac[i] - temp # cumulative number of wasted vaccines per session
+          allwasted = allwasted + wasted[i] # total vaccine wasted
+
           temp = rbinom(1, temp, vaccinationEfficency[i])
           S[i] = floor(S[i] - temp)
           R[i] = floor(R[i] + temp)
         }
-        vaccinationNumber = vaccinationNumber - sum(vac)
-        vaccinationQuota = vaccinationQuota - vac
-        
-        nVacSum <- nVacSum + nVac # updating as export is based on days not tau step
-        vacSum <- vacSum + vac
+        if(testing == F){
+          vaccinationNumber = vaccinationNumber - sum(vac)
+          vaccinationQuota = vaccinationQuota - vac
+          nVacSum = nVacSum + nVac # updating as export is based on days not tau step
+          vacSum = vacSum + vac
+        }else{
+          vaccinationNumber = vaccinationNumber - sum(vac) + sum(wasted)
+          vaccinationQuota = vaccinationQuota - vac + wasted
+          nVacSum = nVacSum + nVac - sum(wasted) 
+          vacSum = vacSum + vac - wasted
+        }
       }
 
       #Calculating force of direct transmission, based on age contact network
@@ -233,8 +242,12 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
 
     time = c(time, tCurrent);
     age = c(age,0);
-    status = c(status, "wasted");
-    Number = c(Number, wasted);
+    status = c(status, "allWasted");
+    if(testing == F){
+      Number = c(Number, allwasted);
+    }else{
+      Number = c(Number, 0);
+    }
     Simul = c(Simul, repID);
 
     time=c(time,rep(tCurrent,n));
@@ -259,21 +272,25 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, repID){
 }
 
 # compute the Number people vaccinated in each age class
-distributeVac <- function(nVac, vaccinationQuota, S){
+distributeVac <- function(nVac, vaccinationQuota, S, vacByAge){
   ll <- length(S)
   result <- rep(0,ll)
   nV <- nVac
-  for(i in ll:1){
-    if(nV > 0){
-      acceptV <- vaccinationQuota[i]  
-      if(nV <= acceptV){ # if not enough for the age class
-        result[i] <- nV
-        nV <- 0
-      } else{ # if there are more vaccines available for the class
-        result[i] <- acceptV
-        nV <- nV - acceptV
+  if(vacByAge == T){
+    for(i in ll:1){
+      if(nV > 0){
+        acceptV <- vaccinationQuota[i]  
+        if(nV <= acceptV){ # if not enough for the age class
+          result[i] <- nV
+          nV <- 0
+        } else{ # if there are more vaccines available for the class
+          result[i] <- acceptV
+          nV <- nV - acceptV
+        }
       }
     }
+  }else{
+    result <- rmultinom(1, nVac, rep(1/ll, ll))
   }
   # if there not enough susceptible wrt to quota (e.g., if vaccine starts to late)
   for(i in ll:2){
@@ -287,4 +304,3 @@ distributeVac <- function(nVac, vaccinationQuota, S){
 
   return(result)
 }
-
