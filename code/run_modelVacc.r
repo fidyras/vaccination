@@ -38,6 +38,9 @@ VE <- c(0.76) # vaccine efficiency #baseline scenario: 0.9
 RR <- 1:22 # 1:22
 REPID <- 1:50
 
+testing <- T # test for seroprevalence
+vacByAge <- T # whether to prioritize older class or just distribute randomly 
+
 #######set baseline seroprevalence by age and region
 spG<-c(0.2) #national seroprevalence
 ## set pPropR: initional the proportion of recovered from previous infection
@@ -92,7 +95,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 							
 							# run the model
 							for(repID in REPID){
-								output <- ModelVacc(paramVac, paramStruc, paramDemo, paramSim, repID)
+								output <- ModelVacc(paramVac, paramStruc, paramDemo, paramSim, testing, vacByAge, repID)
 
 								# add the parameter to the output and append the region
 								summaryD0 <- tail(output,14)[1:nn, 2:5]
