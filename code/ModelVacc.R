@@ -94,7 +94,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
 
       TOT = (S + E + A + R + U) # total number of individuals "vaccinable"
       pS = S/TOT # proportion of susceptible
-
+     # cat(TOT, "\n")
+      # cat(vaccinationQuota)
       # Do vaccination
       if(vaccinationNumber > 0 & t > (vaccinationBegin + lag)){
         wasted = rep(0,n)
@@ -103,6 +104,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
         # cat(vac, "\n")
         for(i in 1:n){
           temp = rbinom(1, vac[i], pS[i]) # actual vaccince used 
+          temp = min(temp, S[i])
           wasted[i] =  vac[i] - temp # cumulative number of wasted vaccines per session
           allwasted = allwasted + wasted[i] # total vaccine wasted
 
@@ -184,7 +186,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
         A[i]=A[i]-Num;
         D[i]=D[i]+Num;
       }
-      
+
       #Saving data
       if(t>tCurrent){
         if(byAge==FALSE){
@@ -290,7 +292,8 @@ distributeVac <- function(nVac, vaccinationQuota, S, vacByAge){
       }
     }
   }else{
-    result <- rmultinom(1, nVac, rep(1/ll, ll))
+    
+    result <- rmultinom(1, min(nVac, sum(vaccinationQuota)), rep(1/ll, ll))
   }
   # if there not enough susceptible wrt to quota (e.g., if vaccine starts to late)
   for(i in ll:2){
@@ -300,6 +303,7 @@ distributeVac <- function(nVac, vaccinationQuota, S, vacByAge){
       result[i-1] = result[i-1] + left
     }
   }
+  
   if(result[1] > S[1]) result[1] <- S[1] #  too many vaccine for all S
 
   return(result)
