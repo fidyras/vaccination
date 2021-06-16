@@ -8,15 +8,15 @@ library(patchwork)
 
 basedata<-read.csv("Simdata/basedata_serop.csv")%>%select(-1)
 
-basedata%>%
+basedata2%>%
   #select(-1)%>%
-  mutate("PropR"=spG)%>%filter(regID=="AL")%>%
-  group_by(vo,acceptV,totalvac,Simul,effV,startV,PropR,PropR_dist)%>%
+  mutate("PropR"=spG)%>%
+  group_by(vo,acceptV,totalvac,Simul,effV,startV,PropR,PropR_dist,testing,vacByAge)%>%
   summarise(deaths=sum(Number))%>%
   mutate(nvax=totalvac/TOTALPOP)%>%
   pivot_wider(names_from=acceptV,values_from=deaths)%>%
   mutate(novax=`0`)%>%
-  pivot_longer(cols=-c(1:8,novax),names_to="acceptance",values_to="deaths")%>%
+  pivot_longer(cols=-c(1:10,novax),names_to="acceptance",values_to="deaths")%>%
   ungroup()%>%
   mutate(percent_red=1-(deaths/novax))->baseline
 
@@ -32,7 +32,7 @@ names(sp.labs) <- c("0", "0.1", "0.2","0.3","0.4")
 
 baseline%>%
   filter(acceptance==0.7)%>%
-  filter(PropR_dist=="pop")%>%
+  filter(vacByAge==TRUE)%>%
   ggplot(aes(x=vo,y=percent_red,group=vo,fill=vo))+
   geom_boxplot()+
   # geom_boxplot(width=0.1)+
@@ -43,7 +43,7 @@ baseline%>%
   scale_fill_brewer(palette= "Dark2",name="Allocation strategy",label=c("Pro-rata", "Age", "Cases", "Deaths", "Uniform"))+
   labs(title="Reduction in Mortality based on allocation strategy",
        subtitle="Baseline conditions 0-40% seroprevalence")+
-  facet_wrap(~PropR,nrow=1)
+  facet_grid(testing~PropR)
 
 baseline%>%group_by(vo,acceptance)%>%summarise(median(percent_red))
 
@@ -65,7 +65,45 @@ a%>%ggplot(aes(x=time,y=key))+
   scale_fill_viridis_b(option ="B",label=percent,name="proportion of population immune",  breaks = c(seq(0,1,0.1)))+
   facet_wrap(~allocV_ts)
 
+####################### vaccinating only seronegative individuals (testing prior to vaccination)
 
+basedata2%>%
+  #select(-1)%>%
+  mutate("PropR"=spG)%>%
+  group_by(vo,acceptV,totalvac,Simul,effV,startV,PropR,PropR_dist,testing,vacByAge)%>%
+  summarise(deaths=sum(Number))%>%
+  mutate(nvax=totalvac/TOTALPOP)%>%
+  pivot_wider(names_from=acceptV,values_from=deaths)%>%
+  mutate(novax=`0`)%>%
+  pivot_longer(cols=-c(1:10,novax),names_to="acceptance",values_to="deaths")%>%
+  ungroup()%>%
+  mutate(percent_red=1-(deaths/novax))->baseline
+
+
+baseline$percent_red<-ifelse(baseline$percent_red<0,0,baseline$percent_red)
+baseline$acceptance<-as.numeric(baseline$acceptance)
+baseline$Simul<-as.factor(baseline$Simul)
+baseline$vo<-as.factor(baseline$vo)
+levels(baseline$vo) <- c("Population", "age", "cases", "deaths", "uniform")
+
+sp.labs <- c("0", "10%", "20%","30%","40%")
+names(sp.labs) <- c("0", "0.1", "0.2","0.3","0.4")
+baseline%>%filter(acceptance==0.70)%>%group_by(testing,vo,PropR)%>%summarise(median=median(percent_red,na.rm=TRUE))->median_test
+baseline%>%
+  filter(acceptance==0.7)%>%
+  filter(vacByAge==TRUE)%>%
+  ggplot(aes(x=PropR,y=percent_red,group=vo,fill=vo))+
+  geom_smooth(data=median_test,aes(x=PropR,y=median,group=interaction(vo,testing),color=vo,lty=testing),se=FALSE,size=1)+
+  geom_line(aes(group=interaction(vo,Simul,testing),color=vo,lty=testing),alpha=0)+
+  # geom_boxplot(width=0.1)+
+  #stat_summary(fun=median, geom="point", size=2)+
+  theme_classic(base_size = 14)+
+  scale_y_continuous(name="Reduction in mortality",label = percent)+
+  scale_x_continuous(name="Underlying seroprevalence",label=percent)+
+  scale_linetype_manual(values=c(2,1),name="Ab-testing prior to vaccination")+
+  scale_color_brewer(palette= "Dark2",name="Allocation strategy",label=c("Pro-rata", "Age", "Cases", "Deaths", "Uniform"))+
+  labs(title="Reduction in Mortality based on allocation strategy",
+       subtitle="Baseline conditions 0-40% seroprevalence")
 
 
 
