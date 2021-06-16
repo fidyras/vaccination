@@ -40,6 +40,7 @@ REPID <- 1:1
 
 testing <- T # test for seroprevalence
 vacByAge <- T # whether to prioritize older class or just distribute randomly 
+onlyS <- T # only susceptible come to be vaccinated
 
 #######set baseline seroprevalence by age and region
 spG<-c(0) #national seroprevalence
@@ -95,7 +96,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 							
 							# run the model
 							for(repID in REPID){
-								output <- ModelVacc(paramVac, paramStruc, paramDemo, paramSim, testing, vacByAge, repID)
+								output <- ModelVacc(paramVac, paramStruc, paramDemo, paramSim, testing, vacByAge, onlyS, repID)
 
 								# add the parameter to the output and append the region
 								summaryD0 <- tail(output,14)[1:nn, 2:5]
@@ -117,7 +118,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 								timeseries<-cbind(timeseries,regID_ts,allocV_ts,acceptV)
 								ts<-rbind(timeseries,ts)
 								
-								summaryD0 <- cbind(summaryD0, regID, regNV, startV, vPerD, vpd, vo, acceptV, effV,totalvac,spG, testing, vacByAge) 
+								summaryD0 <- cbind(summaryD0, regID, regNV, startV, vPerD, vpd, vo, acceptV, effV,totalvac,spG, testing, vacByAge, onlyS) 
 								summaryD <- rbind(summaryD, summaryD0)
 
 								#outname <- paste("Simdata/sim_vacc_reg",REG[r],"vAlloc", vo, "tv", tVac, "dv", vpd, "sv", startVac,"ev", ve, "av", va , "rep", repID, ".csv", sep = "_")

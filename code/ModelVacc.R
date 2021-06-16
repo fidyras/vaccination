@@ -1,5 +1,5 @@
 
-ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByAge, repID){
+ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByAge, onlyS, repID){
 # Simulation parameter
   tMax = paramSim$ptMax;
   nbSimul = paramSim$nbSimul; # this is obsolete. Argument not used 
@@ -92,7 +92,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
       M[which(M<0)]=0;
       D[which(D<0)]=0;
 
-      TOT = (S + E + A + R + U) # total number of individuals "vaccinable"
+      TOT = ifelse(onlyS, S, (S + E + A + R + U)) # total number of individuals "vaccinable"
       pS = S/TOT # proportion of susceptible
      # cat(TOT, "\n")
       # cat(vaccinationQuota)
