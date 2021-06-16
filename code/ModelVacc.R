@@ -92,9 +92,14 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
       M[which(M<0)]=0;
       D[which(D<0)]=0;
 
-      TOT = ifelse(onlyS, S, (S + E + A + R + U)) # total number of individuals "vaccinable"
+      # total number of individuals "vaccinable"
+      if(onlyS == T){
+        TOT = S
+      }else{
+        TOT = S + E + A + R + U
+      }  
       pS = S/TOT # proportion of susceptible
-     # cat(TOT, "\n")
+      # cat(TOT, "\n")
       # cat(vaccinationQuota)
       # Do vaccination
       if(vaccinationNumber > 0 & t > (vaccinationBegin + lag)){
@@ -291,10 +296,10 @@ distributeVac <- function(nVac, vaccinationQuota, S, vacByAge){
         }
       }
     }
-  }else{
-    
+  }else{   
     result <- rmultinom(1, min(nVac, sum(vaccinationQuota)), rep(1/ll, ll))
   }
+
   # if there not enough susceptible wrt to quota (e.g., if vaccine starts to late)
   for(i in ll:2){
     if(result[i] > S[i]){

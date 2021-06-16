@@ -38,7 +38,7 @@ VE <- c(0.76) # vaccine efficiency #baseline scenario: 0.9
 RR <- 3:3 # 1:22
 REPID <- 1:1
 
-testing <- T # test for seroprevalence
+testing <- F # test for seroprevalence
 vacByAge <- T # whether to prioritize older class or just distribute randomly 
 onlyS <- T # only susceptible come to be vaccinated
 
@@ -51,9 +51,6 @@ spAge<-c(0.05,0.1,0.2,0.2,0.2,0.15,0.1) #change seroprevalence by age class
 for (rr in 1:22){
   NR[rr,] <- round(regR[rr]*spAge)
 }
-
-
-
 
 summaryD <- c()
 ts<-c()
@@ -132,7 +129,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 	}
 }
 )
-
+	
 #outname_ts <- paste("Simdata/SEIR","accept",va, "start", startVac, ".csv", sep = "_")
 #write.csv(ts,outname_ts)
 #outname <- paste("Simdata/baseline_seroprevalence0.2_uniform.csv")
