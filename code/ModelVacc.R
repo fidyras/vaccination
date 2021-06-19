@@ -99,6 +99,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
         TOT = S + E + A + R + U
       }  
       pS = S/TOT # proportion of susceptible
+      pS[is.na(pS)] <- 0
       # cat(TOT, "\n")
       # cat(vaccinationQuota)
       # Do vaccination
@@ -114,8 +115,8 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
           allwasted = allwasted + wasted[i] # total vaccine wasted
 
           temp = rbinom(1, temp, vaccinationEfficency[i])
-          S[i] = floor(S[i] - temp)
-          R[i] = floor(R[i] + temp)
+          S[i] = S[i] - temp
+          R[i] = R[i] + temp
         }
         if(testing == F){
           vaccinationNumber = vaccinationNumber - sum(vac)
