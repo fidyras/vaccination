@@ -32,15 +32,15 @@ TOTALPOP <- sum(POPDATA$sum_pop)
 TOTALVAC <-  ceiling(c(TOTALPOP*0.2)) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
 STARTV <- c(10) # when to start vaccinating
 VPERDAY <- ceiling(c(0.5*20))# proportion of staff * how many they can do in a day
-VACCOPT <- 1:1 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
+VACCOPT <- 1:5 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
 VA <-  c(0,0.7) # acceptance #baseline 0.70 (Transparency international)
 VE <- c(0.76) # vaccine efficiency #baseline scenario: 0.9
-RR <- 3:3 # 1:22
-REPID <- 1:1
+RR <- 1:22 # 1:22
+REPID <- 2:25
 
-testing <- F # test for seroprevalence
+testing <- F # test for presence of antibodies on site (vaccinate only seronegative)
 vacByAge <- T # whether to prioritize older class or just distribute randomly 
-onlyS <- T # only susceptible come to be vaccinated
+onlyS <- F # only susceptible come to be vaccinated (=testing is done before vaccination)
 
 #######set baseline seroprevalence by age and region
 spG<-c(0) #national seroprevalence
@@ -110,11 +110,11 @@ for(tVac in TOTALVAC){ # total number of vaccines
 								effV <- pvEff
 								
 								# output of the timeseries for all regions
-								regID_ts <- rep(REG[r],mm)
-								allocV_ts <- rep(vo,mm)
-								timeseries<-cbind(timeseries,regID_ts,allocV_ts,acceptV)
-								ts<-rbind(timeseries,ts)
-								
+								# regID_ts <- rep(REG[r],mm)
+								# allocV_ts <- rep(vo,mm)
+								# timeseries<-cbind(timeseries,regID_ts,allocV_ts,acceptV)
+								# ts<-rbind(timeseries,ts)
+
 								summaryD0 <- cbind(summaryD0, regID, regNV, startV, vPerD, vpd, vo, acceptV, effV,totalvac,spG, testing, vacByAge, onlyS) 
 								summaryD <- rbind(summaryD, summaryD0)
 
@@ -134,4 +134,11 @@ for(tVac in TOTALVAC){ # total number of vaccines
 #write.csv(ts,outname_ts)
 #outname <- paste("Simdata/baseline_seroprevalence0.2_uniform.csv")
 #write.csv(summaryD, outname)
-summaryD%>%mutate("PropR_dist"="Pop")%>%rbind(basedata_pop)->basedata_pop
+
+
+sim2<-summaryD%>%
+  #mutate("PropR_dist"="deaths","PropR"=spG)%>%
+  rbind(sim2)
+write.csv(sim2,"Simdata/simulation2_data.csv")
+
+
