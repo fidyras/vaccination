@@ -16,8 +16,11 @@ mm<-nn*tMax*10 #(10:number of compartments SEAIRUMD+nVac+newC)
 # basic parameter for simulation
 paramSim <- list(ptMax = tMax, nbSimul = nbSimul, byAge = T)
 
+# waning immunity rate: the same for all state 
+pW <- 1/182 # roughly half a year. 
+
 # demographic parameter
-paramDemo <- list(pTransmRate = baseTR, pPropAsympto = 0.4, pEpsilon = 1/3, pSigma = 1/5, pLethalityAge = pLA, pSeverityAge = pSA, pLethalityAgeUnNoticed = pLU)
+paramDemo <- list(pTransmRate = baseTR, pPropAsympto = 0.4, pEpsilon = 1/3, pSigma = 1/5, pLethalityAge = pLA, pSeverityAge = pSA, pLethalityAgeUnNoticed = pLU, pWane = pW)
 
 # # parameter for npi (if needed)
 # paramNPI <- list(pPisol = 0, pTimePisol = Inf, pConfinementBegin = rep(Inf, nn),pConfinementDuration = rep(Inf, nn), pConfinementEfficiency = rep(Inf, nn), cpConfinementTarget = 1:nn)
@@ -41,6 +44,7 @@ REPID <- 1:1
 testing <- F # test for seroprevalence
 vacByAge <- T # whether to prioritize older class or just distribute randomly 
 onlyS <- T # only susceptible come to be vaccinated
+wscale <- 0 # change to 1 for 6 months and 2 for 3 months
 
 #######set baseline seroprevalence by age and region
 spG<-c(0) #national seroprevalence
@@ -72,6 +76,7 @@ for(tVac in TOTALVAC){ # total number of vaccines
 							pPopSize <- sum(temp$sum_pop) # population size in the region
 							pPropAge <- temp$sum_pop/pPopSize #  convert to proportion per age class
 							paramDemo$pTransmRate = baseTR * TOTALPOP/pPopSize # scale so that R0 ~ 2.5
+							paramDem$pWane = wscale*paramDem$pWane 
 
 							#start with appropriate numbers of infected in each age class based on age distribution
 							#start with ten casesvap

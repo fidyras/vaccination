@@ -19,6 +19,7 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
   propAsympto = paramDemo$pPropAsympto
   epsilon = paramDemo$pEpsilon
   sigma = paramDemo$pSigma
+  wane = paramDemo$pWane
 
   severityAge = paramDemo$pSeverityAge;
   lethalityAge = paramDemo$pLethalityAge;
@@ -164,6 +165,10 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
         rates=c(rates,sigma*lethalityAge[i]*I[i]); #I-1,D+1
         rates=c(rates,sigma*severityAge[i]*I[i]); #I-1,M+1
         rates=c(rates,sigma*lethalityAgeUnNoticed[i]*A[i]); #A-1,D+1
+
+        # adding waning
+        waneR = wane*R[i]
+        waneU = wane*U[i]
         
         #Rates application
         Num=rpois(1,rates[1]*tau);
@@ -191,6 +196,16 @@ ModelVacc <- function(paramVac, paramStruc, paramDemo, paramSim, testing, vacByA
         Num=rpois(1,rates[8]*tau);
         A[i]=A[i]-Num;
         D[i]=D[i]+Num;
+
+        # waning
+        Num = rpois(1, waneR*tau);
+        R[i] = R[i] - Num
+        S[i] = S[i] + Num
+
+        Num = rpois(1, waneU*tau);
+        U[i] = U[i] - Num
+        S[i] = S[i] + Num
+
       }
 
       #Saving data
