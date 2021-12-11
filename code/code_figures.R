@@ -4,7 +4,7 @@ library(patchwork)
 library(sf)
 library(ggmap)
 
-## map of vaccine allocation by strategy
+
 
 
 mdg2<-read_sf("data/shapefile/MDG_ADM1.shp")
@@ -13,6 +13,8 @@ VACDATA <- read.csv("data/vacc_alloc2.csv")
 REG <- unique(POPDATA$key)
 TOTALPOP <- sum(POPDATA$sum_pop)
 TOTALVAC <-  ceiling(c(TOTALPOP*0.2)) 
+
+## map of vaccine allocation by strategy
 
 POPDATA%>%group_by(Region)%>%summarise(population=sum(sum_pop))->a
 
@@ -68,14 +70,14 @@ vo1|vo2|vo3|vo4|plot_annotation(tag_levels = "A")
 basedata<-read.csv("Simdata/basedata2_test.csv")%>%
   select(-1)
 
-basedata%>%mutate("PropR_dist"="uniform")%>%
+basedata_r2%>%mutate("PropR_dist"="uniform")%>%
   mutate("PropR"=spG)%>%filter(spG==0)%>%
-  group_by(vo,acceptV,totalvac,Simul,effV,startV,PropR,PropR_dist,testing,onlyS,vacByAge)%>%
+  group_by(vo,acceptV,totalvac,Simul,effV,startV,PropR,PropR_dist,testing,onlyS,vacByAge,r0)%>%
   summarise(deaths=sum(Number))%>%
   mutate(nvax=totalvac/TOTALPOP)%>%
   pivot_wider(names_from=acceptV,values_from=deaths)%>%
   mutate(novax=`0`)%>%
-  pivot_longer(cols=-c(1:11,novax),names_to="acceptance",values_to="deaths")%>%
+  pivot_longer(cols=-c(1:12,novax),names_to="acceptance",values_to="deaths")%>%
   ungroup()%>%
   mutate(percent_red=1-(deaths/novax))->baseline
 
@@ -84,6 +86,7 @@ baseline$percent_red<-ifelse(baseline$percent_red<0,0,baseline$percent_red)
 baseline$acceptance<-as.numeric(baseline$acceptance)
 baseline$Simul<-as.factor(baseline$Simul)
 baseline$vo<-as.factor(baseline$vo)
+baseline$r0<-as.factor(baseline$r0)
 levels(baseline$vo) <- c("Population", "age", "cases", "deaths", "uniform")
 
 
@@ -99,8 +102,10 @@ base_fig<-baseline%>%
   scale_y_continuous(name="Reduction in mortality",label = percent)+
   scale_x_discrete(name="",breaks=NULL)+
   coord_cartesian(ylim=c(0.25,0.5))+
+  facet_wrap(~r0)+
   scale_fill_brewer(palette= "Dark2",name="Allocation strategy",label=c("Pro-rata", "Age", "Cases", "Deaths", "Uniform"))
 
+base_fig+plot_layout(guides = "collect")+plot_annotation(tag_levels = "A")
 ##########
 
 ################### SIMULATIONS
@@ -134,7 +139,7 @@ Simulation1%>%
   ggplot()+
   geom_line(aes(x=nvax,y=percent_red,group=interaction(vo,Simul),color=vo),size=0.1,alpha=0.2)+
   geom_smooth(data=median_sim1,aes(x=nvax,y=median,group=vo,color=vo),se=FALSE,size=1)+
-  theme_classic(base_size = 14)+
+  theme_classic(base_size = 12)+
   scale_x_continuous(name="Total vaccine supply",
                      label=percent)+
   scale_y_continuous(name="Reduction in mortality",label = percent,
@@ -179,7 +184,7 @@ Simulation2%>%
               size=0.05,se=F)+
   geom_smooth(data=median_sim2,aes(x=acceptance, y=median, group=interaction(vo),color=vo),
               size=1,se=F)+
-  theme_classic(base_size = 14)+
+  theme_classic(base_size = 12)+
   scale_x_continuous(name="Vaccine acceptance",
                      label=percent)+
   scale_y_continuous(name="Reduction in mortality",label = percent)+
@@ -199,7 +204,7 @@ sim2_fig
 #### reduction of deaths as a function of the rollout speed 
 #vary number of HCW doing 20 vaccines/day assuming enough vaccines for 20% of the population and 70% acceptance
 
-simData3<-read.csv("Simdata/Simulation3.csv")
+simData3<-read.csv("Simdata/Simulation3.csv")%>%select(-1)
 simData3$vo<-as.factor(simData3$vo)
 levels(simData3$vo) <- c("Population", "Elderly", "Number of cases", "Number of deaths", "Uniform allocation")
 
@@ -216,7 +221,7 @@ simData3%>%
 Simulation3%>%filter(acceptance==0.7)%>%
   ggplot()+
   geom_smooth(aes(x=staff,y=percent_red,group=vo,color=vo),position=position_dodge(width=0.1),size=1.5,se=FALSE)+
-  theme_classic(base_size = 14)+
+  theme_classic(base_size = 12)+
   geom_line(aes(x=staff,y=percent_red,group=interaction(Simul,vo),color=vo),
             size=0.1,se=F,alpha=0.5)+
   scale_x_continuous(name="Speed of vaccine rollout",
@@ -248,8 +253,8 @@ Simulation5%>%filter(acceptance==0.70)%>%group_by(startV,vo)%>%summarise(median=
 Simulation5%>%filter(acceptance==0.7)%>%
   ggplot()+
   geom_line(aes(x=startV,y=percent_red,group=interaction(vo,Simul),color=vo),size=0.1,alpha=0.5)+
-  geom_smooth(data=median_sim5,aes(x=startV,y=median,group=vo,color=vo),se=FALSE,size=1)+
-  theme_classic(base_size = 14)+
+  geom_line(data=median_sim5,aes(x=startV,y=median,group=vo,color=vo),se=FALSE,size=1)+
+  theme_classic(base_size = 12)+
   scale_x_continuous(name="Start of vaccination (days)")+
   scale_y_continuous(name="Reduction in mortality",label = percent,
                      limits=c(0,0.5))+
@@ -304,7 +309,7 @@ baseline%>%
   theme_classic(base_size = 14)+ theme(legend.position = "none")+
   scale_y_continuous(name="Reduction in mortality",label = percent)+
   scale_x_continuous(name="Underlying seroprevalence",label=percent)+
-  coord_cartesian(ylim=c(0.1,0.8))+
+  coord_cartesian(ylim=c(0.1,0.8),xlim=c(0,0.4))+
   scale_linetype_manual(values=c(1,3),name="Ab-testing prior to vaccination (on site)")+
   scale_color_brewer(palette= "Dark2",name="Allocation strategy",label=c("Pro-rata", "Age", "Cases", "Deaths", "Uniform"))->base_test_fig
 
@@ -341,7 +346,7 @@ baseline%>%
   theme_classic(base_size = 14) + theme(legend.position = "none")+
   scale_y_continuous(name="Reduction in mortality",label = percent)+
   scale_x_continuous(name="Underlying seroprevalence",label=percent)+
-  coord_cartesian(ylim=c(0.1,0.8))+
+  coord_cartesian(ylim=c(0.1,0.8),xlim=c(0,0.4))+
   scale_linetype_manual(values=c(1,3),name="Only Susceptibles come to vaccination")+
   scale_color_brewer(palette= "Dark2",name="Allocation strategy",label=c("Pro-rata", "Age", "Cases", "Deaths", "Uniform"))->onlyS_fig
 
@@ -385,6 +390,7 @@ baseline%>%
   scale_linetype_manual(name="Distribution of seropositives",values=c(2,1),labels=c("cases","uniform"),guide=NULL)+
   scale_y_continuous(name="Reduction of mortality",labels=percent)+
   scale_x_continuous(name="Underlying seroprevalence",labels=percent)+
+  coord_cartesian(xlim=c(0,0.39))+
   scale_color_brewer(palette= "Dark2",name="allocation strategy")->distr_sero
 
 #############
