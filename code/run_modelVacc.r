@@ -16,8 +16,11 @@ mm<-nn*tMax*10 #(10:number of compartments SEAIRUMD+nVac+newC)
 # basic parameter for simulation
 paramSim <- list(ptMax = tMax, nbSimul = nbSimul, byAge = T)
 
+# waning immunity rate: the same for all state 
+pW <- 1/182 # roughly half a year. 
+
 # demographic parameter
-paramDemo <- list(pTransmRate = baseTR, pPropAsympto = 0.4, pEpsilon = 1/3, pSigma = 1/5, pLethalityAge = pLA, pSeverityAge = pSA, pLethalityAgeUnNoticed = pLU)
+paramDemo <- list(pTransmRate = baseTR, pPropAsympto = 0.4, pEpsilon = 1/3, pSigma = 1/5, pLethalityAge = pLA, pSeverityAge = pSA, pLethalityAgeUnNoticed = pLU, pWane = pW)
 
 # # parameter for npi (if needed)
 # paramNPI <- list(pPisol = 0, pTimePisol = Inf, pConfinementBegin = rep(Inf, nn),pConfinementDuration = rep(Inf, nn), pConfinementEfficiency = rep(Inf, nn), cpConfinementTarget = 1:nn)
@@ -32,16 +35,18 @@ TOTALPOP <- sum(POPDATA$sum_pop)
 TOTALVAC <-  ceiling(c(TOTALPOP*0.2)) # total number of vaccines #baseline scenario 25% of TOTALPOPULATION
 STARTV <- c(10) # when to start vaccinating
 VPERDAY <- ceiling(c(0.5*20))# proportion of staff * how many they can do in a day
-VACCOPT <- 1:5 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
+VACCOPT <- 1:1 #c("freq_pop", "freq_60", "freqcases", "freqdeaths","uniform")
 VA <-  c(0,0.7) # acceptance #baseline 0.70 (Transparency international)
 VE <- c(0.76) # vaccine efficiency #baseline scenario: 0.9
 RR <- 1:22 # 1:22
 REPID <- 1:25
 r0fact<-1 #factor by which to increase/decrease the r0 (initial is 2.5)
-r0<-r0fact*2.5
+ r0<-r0fact*2.5
+
 testing <- F # test for presence of antibodies on site (vaccinate only seronegative)
 vacByAge <- T # whether to prioritize older class or just distribute randomly 
-onlyS <- F # only susceptible come to be vaccinated (=testing is done before vaccination)
+onlyS <- T # only susceptible come to be vaccinated
+wscale <- 0 # change to 1 for 6 months and 2 for 3 months
 
 #######set baseline seroprevalence by age and region
 spG<-c(0) #national seroprevalence
@@ -73,10 +78,11 @@ for(tVac in TOTALVAC){ # total number of vaccines
 							pPopSize <- sum(temp$sum_pop) # population size in the region
 							pPropAge <- temp$sum_pop/pPopSize #  convert to proportion per age class
 							paramDemo$pTransmRate = r0fact*baseTR * TOTALPOP/pPopSize # scale so that R0 ~ 2.5
+							paramDem$pWane = wscale*paramDem$pWane 
 
 							#start with appropriate numbers of infected in each age class based on age distribution
 							#either start with ten cases or 1 infected individual per 100 000 people in the region
-							pIi <- round(round(sum(temp$sum_pop/100000)) * pPropAge,0)
+ 							pIi <- round(round(sum(temp$sum_pop/100000)) * pPropAge,0)
 
 							#number of asymptomatics
 							pAi <- round(pIi/(1 - paramDemo$pPropAsympto),0)
@@ -111,11 +117,11 @@ for(tVac in TOTALVAC){ # total number of vaccines
 								effV <- pvEff
 								
 								# output of the timeseries for all regions
-								# regID_ts <- rep(REG[r],mm)
-								# allocV_ts <- rep(vo,mm)
-								# timeseries<-cbind(timeseries,regID_ts,allocV_ts,acceptV)
-								# ts<-rbind(timeseries,ts)
-
+								regID_ts <- rep(REG[r],mm)
+								allocV_ts <- rep(vo,mm)
+								timeseries<-cbind(timeseries,regID_ts,allocV_ts,acceptV)
+								ts<-rbind(timeseries,ts)
+								
 								summaryD0 <- cbind(summaryD0, regID, regNV, startV, vPerD, vpd, vo, acceptV, effV,totalvac,spG, testing, vacByAge, onlyS, r0) 
 								summaryD <- rbind(summaryD, summaryD0)
 
@@ -136,8 +142,5 @@ for(tVac in TOTALVAC){ # total number of vaccines
 #outname <- paste("Simdata/baseline_seroprevalence0.2_uniform.csv")
 #write.csv(summaryD, outname)
 
-
 basedata_r2<-basedata_r%>%
-  rbind(summaryD)
-
-
+   rbind(summaryD)
